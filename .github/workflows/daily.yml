@@ -5,12 +5,22 @@ on:
     # UTC 02:30 = 北京时间 10:30
     - cron: '30 2 * * *'
   workflow_dispatch:
-    # 支持手动触发（点一下就跑）
-    inputs:
-      actions:
-        description: '要执行的操作（checkin/videos/dynamics/all）'
-        required: false
-        default: 'all'
+
+# ═══════════════════════════════════════════
+# 🔧 配置区（按需修改 true / false）
+# ═══════════════════════════════════════════
+env:
+  # 直播间签到（自动佩戴粉丝牌 + 发弹幕），默认开启
+  ENABLE_CHECKIN: 'true'
+
+  # 视频点赞（给最近7天的新视频点赞），默认关闭
+  ENABLE_VIDEO_LIKE: 'false'
+
+  # 动态点赞（给最近7天的动态点赞），默认关闭
+  ENABLE_DYNAMIC_LIKE: 'false'
+
+  # 签到弹幕内容，可以改成你喜欢的
+  CHECKIN_MSG: '签到'
 
 jobs:
   support:
@@ -24,22 +34,16 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 🏅 直播间签到（自动佩戴粉丝牌）
-        if: >-
-          github.event_name == 'schedule' ||
-          github.event.inputs.actions == 'all' ||
-          github.event.inputs.actions == 'checkin'
+      - name: 🏅 直播间签到（佩戴粉丝牌 + 弹幕）
+        if: env.ENABLE_CHECKIN == 'true'
         env:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
         run: |
-          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
+          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --msg "$CHECKIN_MSG"
 
       - name: 👍 视频点赞（最近7天）
-        if: >-
-          github.event_name == 'schedule' ||
-          github.event.inputs.actions == 'all' ||
-          github.event.inputs.actions == 'videos'
+        if: env.ENABLE_VIDEO_LIKE == 'true'
         env:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
@@ -47,10 +51,7 @@ jobs:
           python3 scripts/videos.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
 
       - name: 💬 动态点赞（最近7天）
-        if: >-
-          github.event_name == 'schedule' ||
-          github.event.inputs.actions == 'all' ||
-          github.event.inputs.actions == 'dynamics'
+        if: env.ENABLE_DYNAMIC_LIKE == 'true'
         env:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
