@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 A-SOUL 直播间批量弹幕签到。
-内置全部现役成员直播间，一键签到。
+自动佩戴对应粉丝牌 → 发送签到弹幕，最大化亲密度收益。
 零外部依赖，纯标准库。
 """
 
@@ -53,6 +53,84 @@ def save_cookies(sessdata: str, bili_jct: str):
     print(f"💾 Cookie 已保存到 {path}")
 
 
+# ──────────────────────────────────────────
+# Fan Medal (粉丝牌)
+# ──────────────────────────────────────────
+
+def _get_json(url: str, headers: dict, timeout: int = 10) -> Optional[dict]:
+    req = urllib.request.Request(url, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def _post_form(url: str, data: dict, headers: dict, timeout: int = 10) -> Optional[dict]:
+    form = urllib.parse.urlencode(data).encode("utf-8")
+    headers = {**headers, "Content-Type": "application/x-www-form-urlencoded"}
+    req = urllib.request.Request(url, data=form, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except Exception:
+        return None
+
+
+def get_my_medals(sessdata: str, bili_jct: str) -> Dict[int, Dict]:
+    """获取我的所有粉丝牌，返回 {target_uid: medal_info}"""
+    medals = {}
+    page = 1
+    while True:
+        url = f"https://api.live.bilibili.com/xlive/app-ucenter/v1/fansMedal/panel?page={page}&page_size=50"
+        headers = {
+            "User-Agent": _UA,
+            "Cookie": f"SESSDATA={sessdata}; bili_jct={bili_jct}",
+            "Referer": "https://live.bilibili.com",
+        }
+        resp = _get_json(url, headers)
+        if not resp or resp.get("code") != 0:
+            break
+        data = resp.get("data", {})
+
+        special = data.get("special_list", []) or []
+        normal = data.get("list", []) or []
+        for item in special + normal:
+            info = item.get("medal", item)
+            target_id = info.get("target_id", 0)
+            if target_id:
+                medals[target_id] = {
+                    "medal_id": info.get("medal_id"),
+                    "medal_name": info.get("medal_name", ""),
+                    "level": info.get("level", 0),
+                    "target_id": target_id,
+                    "is_lighted": info.get("is_lighted", 0),
+                }
+
+        if not data.get("page_info", {}).get("has_more", False) and page > 1:
+            break
+        total_page = data.get("page_info", {}).get("total_page", 1)
+        if page >= total_page:
+            break
+        page += 1
+
+    return medals
+
+
+def wear_medal(medal_id: int, sessdata: str, bili_jct: str) -> bool:
+    """佩戴指定粉丝牌"""
+    url = "https://api.live.bilibili.com/xlive/web-room/v1/fansMedal/wear"
+    headers = {
+        "User-Agent": _UA,
+        "Cookie": f"SESSDATA={sessdata}; bili_jct={bili_jct}",
+        "Origin": "https://live.bilibili.com",
+        "Referer": "https://live.bilibili.com",
+    }
+    data = {"medal_id": str(medal_id), "csrf": bili_jct, "csrf_token": bili_jct}
+    resp = _post_form(url, data, headers)
+    return resp is not None and resp.get("code") == 0
+
+
 def send_danmaku(room_id: int, msg: str, sessdata: str, bili_jct: str) -> Dict:
     form_data = urllib.parse.urlencode({
         "bubble": "0",
@@ -91,9 +169,23 @@ def send_danmaku(room_id: int, msg: str, sessdata: str, bili_jct: str) -> Dict:
         return {"code": -1, "message": str(e)}
 
 
-def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str) -> List[Dict]:
+def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
+                  auto_medal: bool = True) -> List[Dict]:
+    medals = {}
+    if auto_medal:
+        print("  🏅 正在获取粉丝牌列表...", file=sys.stderr)
+        medals = get_my_medals(sessdata, bili_jct)
+
     results = []
     for m in members:
+        medal_info = None
+        medal_worn = False
+
+        if auto_medal and m["uid"] in medals:
+            medal_info = medals[m["uid"]]
+            medal_worn = wear_medal(medal_info["medal_id"], sessdata, bili_jct)
+            time.sleep(0.5)
+
         resp = send_danmaku(m["room"], msg, sessdata, bili_jct)
         success = resp.get("code") == 0
         results.append({
@@ -103,6 +195,8 @@ def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str) -
             "msg": msg,
             "success": success,
             "error": None if success else resp.get("message", resp.get("msg", "未知错误")),
+            "medal": medal_info,
+            "medal_worn": medal_worn,
             "raw": resp,
         })
         if len(members) > 1:
@@ -116,8 +210,18 @@ def format_output(results: List[Dict]) -> str:
     fail = len(results) - ok
 
     for r in results:
+        medal = r.get("medal")
+        medal_str = ""
+        if medal:
+            if r.get("medal_worn"):
+                medal_str = f"  🏅{medal['medal_name']}Lv{medal['level']}"
+            else:
+                medal_str = f"  🏅{medal['medal_name']}(佩戴失败)"
+        elif r.get("success"):
+            medal_str = "  (无粉丝牌)"
+
         if r["success"]:
-            lines.append(f"  ✅ {r['name']}  — 签到成功  💬「{r['msg']}」")
+            lines.append(f"  ✅ {r['name']}{medal_str}  — 签到成功  💬「{r['msg']}」")
         else:
             err = r["error"] or "未知错误"
             if "login" in err.lower() or "-101" in str(r.get("raw", {}).get("code", "")):
@@ -145,6 +249,7 @@ def main():
     parser.add_argument("--sessdata", help="SESSDATA cookie")
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--save-cookie", action="store_true", help="保存 cookie")
+    parser.add_argument("--no-medal", action="store_true", help="不自动佩戴粉丝牌")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     parser.add_argument("--list", action="store_true", help="列出所有成员")
     args = parser.parse_args()
@@ -186,7 +291,8 @@ def main():
             print(f"   可用成员：{', '.join(m['name'] for m in MEMBERS)}")
             sys.exit(1)
 
-    results = batch_checkin(targets, args.msg, sessdata, bili_jct)
+    results = batch_checkin(targets, args.msg, sessdata, bili_jct,
+                            auto_medal=not args.no_medal)
 
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
