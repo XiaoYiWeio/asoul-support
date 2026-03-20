@@ -1,43 +1,56 @@
-A-SOUL 粉丝应援工具 — 一键签到 + 视频点赞
+A-SOUL 粉丝应援工具 — 一键签到 + 视频点赞 + 动态点赞
 
-给嘉然、贝拉、乃琳、心宜、思诺的直播间签到和视频三连，一句话搞定。
+给嘉然、贝拉、乃琳、心宜、思诺的直播间签到、视频点赞、动态点赞，设置一次，每天自动跑。
 
-基于 OpenClaw 的自动化 Skill，纯 Python 标准库，零依赖。
+不需要装任何软件，不需要会编程，只要有 GitHub 账号就行。
 
 ——————————————
 
 📌 支持的功能
 
-✅ 直播间签到 — 给 5 位成员的直播间发弹幕签到，刷亲密度
-✅ 视频点赞 — 批量给成员指定月份的新视频点赞
-✅ 视频投币/收藏（可选）— 需要明确指定，不会默认消耗硬币
+✅ 自动佩戴粉丝牌 + 直播间弹幕签到（5个直播间全签）
+✅ 自动给成员新视频点赞
+✅ 自动给成员新动态（图文/转发）点赞
+✅ 投币/收藏（可选，默认关闭不消耗硬币）
 
 ——————————————
 
-📦 安装步骤
+📦 设置步骤（只需一次，约5分钟）
 
-① 先装 OpenClaw（官网：docs.openclaw.ai）
-不清楚怎么安装的可以在B站搜索 OpenClaw 相关视频教程
+① Fork 仓库
+打开 github.com/XiaoYiWeio/asoul-support
+点右上角「Fork」按钮，复制到你自己账号下
 
-② 安装本 Skill：
-终端输入：clawhub install asoul-support
-
-③ 设置 B站 Cookie（只需一次）：
+② 获取 B站 Cookie
 在 Chrome 打开 bilibili.com（确保已登录）
 按 F12 → Application → Cookies → bilibili.com
-找到 SESSDATA 和 bili_jct 两个值
-然后告诉你的 OpenClaw：
-「帮我保存B站Cookie，SESSDATA是xxx，bili_jct是xxx」
+找到 SESSDATA 和 bili_jct，复制它们的值
+
+③ 填入 GitHub Secrets
+进入你 Fork 的仓库 → Settings → Secrets and variables → Actions
+点 New repository secret，添加两个：
+  - Name: SESSDATA    Value: 你的SESSDATA
+  - Name: BILI_JCT    Value: 你的bili_jct
+
+④ 启用 Actions
+进入仓库 Actions 标签 → 点「I understand my workflows, go ahead and enable them」
+
+搞定！每天北京时间 10:30 自动执行。
 
 ——————————————
 
-💬 使用方式（直接对话）
+💡 不想等定时？手动跑一次
 
-「给asoul直播间签到」→ 5个直播间全部签到
-「给asoul 3月视频点赞」→ 给3月全部新视频点赞
-「给嘉然的视频三连」→ 点赞+投币+收藏
-「给asoul最近的视频投币」→ 最近7天视频投币
-「给嘉然和贝拉签到」→ 只签指定成员
+Actions 标签 → 左侧选「A-SOUL 每日应援」→ 点 Run workflow → Run
+
+——————————————
+
+🔒 安全说明
+
+你的 Cookie 只存在你自己的 GitHub 里，加密存储
+任何人（包括我）都看不到你的 Cookie
+所有代码完全开源，可以自己检查
+只做签到和点赞，不会改你的账号设置
 
 ——————————————
 
@@ -45,29 +58,23 @@ A-SOUL 粉丝应援工具 — 一键签到 + 视频点赞
 
 🌟 A-SOUL 直播间签到结果
 
-  ✅ 嘉然  — 签到成功  💬「签到」
-  ✅ 贝拉  — 签到成功  💬「签到」
-  ✅ 乃琳  — 签到成功  💬「签到」
-  ✅ 心宜  — 签到成功  💬「签到」
-  ✅ 思诺  — 签到成功  💬「签到」
+  ✅ 嘉然  🏅嘉心糖Lv26  — 签到成功  💬「签到」
+  ✅ 贝拉  🏅贝极星Lv8   — 签到成功  💬「签到」
+  ✅ 乃琳  🏅乃琳一生推Lv6 — 签到成功  💬「签到」
+  ✅ 心宜  🏅心宜Lv3     — 签到成功  💬「签到」
+  ✅ 思诺  🏅思诺Lv3     — 签到成功  💬「签到」
 
   🎉 全部签到成功！(5/5)
 
 ——————————————
 
-⏰ 搭配定时任务（每天自动签到）
+⚠️ 注意事项
 
-方式一：直接对话
-告诉你的 OpenClaw：
-「帮我设置一个定时任务，每天早上10:30自动给asoul直播间签到，然后给本月新视频点赞」
-OpenClaw 会自动帮你创建定时任务，之后每天到点自动执行，结果推送到你的聊天频道。
-
-方式二：命令行
-终端输入：
-openclaw cron add --name "A-SOUL每日签到" --cron "30 10 * * *" --exact --message "帮我给asoul直播间签到，然后给本月新视频点赞" --timeout-seconds 300 --announce --channel discord --to 你的频道ID
+Cookie 大约1个月过期，过期后去 Settings → Secrets 里更新就好
+GitHub Actions 对公开仓库完全免费
 
 ——————————————
 
-🔗 源码：github.com/XiaoYiWeio/asoul-support
+🔗 仓库地址：github.com/XiaoYiWeio/asoul-support
 
-使用过程中遇到任何问题或报错，欢迎在帖子下评论，我看到会竭力回复！
+使用过程中遇到任何问题，欢迎在帖子下评论，我看到会竭力回复！

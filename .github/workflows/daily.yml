@@ -1,0 +1,58 @@
+name: A-SOUL 每日应援
+
+on:
+  schedule:
+    # UTC 02:30 = 北京时间 10:30
+    - cron: '30 2 * * *'
+  workflow_dispatch:
+    # 支持手动触发（点一下就跑）
+    inputs:
+      actions:
+        description: '要执行的操作（checkin/videos/dynamics/all）'
+        required: false
+        default: 'all'
+
+jobs:
+  support:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 🏅 直播间签到（自动佩戴粉丝牌）
+        if: >-
+          github.event_name == 'schedule' ||
+          github.event.inputs.actions == 'all' ||
+          github.event.inputs.actions == 'checkin'
+        env:
+          SESSDATA: ${{ secrets.SESSDATA }}
+          BILI_JCT: ${{ secrets.BILI_JCT }}
+        run: |
+          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
+
+      - name: 👍 视频点赞（最近7天）
+        if: >-
+          github.event_name == 'schedule' ||
+          github.event.inputs.actions == 'all' ||
+          github.event.inputs.actions == 'videos'
+        env:
+          SESSDATA: ${{ secrets.SESSDATA }}
+          BILI_JCT: ${{ secrets.BILI_JCT }}
+        run: |
+          python3 scripts/videos.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
+
+      - name: 💬 动态点赞（最近7天）
+        if: >-
+          github.event_name == 'schedule' ||
+          github.event.inputs.actions == 'all' ||
+          github.event.inputs.actions == 'dynamics'
+        env:
+          SESSDATA: ${{ secrets.SESSDATA }}
+          BILI_JCT: ${{ secrets.BILI_JCT }}
+        run: |
+          python3 scripts/dynamics.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
