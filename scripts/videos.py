@@ -295,9 +295,10 @@ def _get_default_fav(sessdata: str, bili_jct: str) -> Optional[int]:
 def process_member_videos(member: Dict, videos: List[Dict],
                           sessdata: str, bili_jct: str,
                           do_like: bool = True, do_coin: bool = False,
-                          do_fav: bool = False, fav_id: Optional[int] = None) -> List[Dict]:
+                          do_fav: bool = False, fav_id: Optional[int] = None,
+                          delay: float = 8) -> List[Dict]:
     results = []
-    for v in videos:
+    for i, v in enumerate(videos):
         aid = v["aid"]
         title = v["title"]
         actions = []
@@ -305,17 +306,18 @@ def process_member_videos(member: Dict, videos: List[Dict],
         if do_like:
             r = like_video(aid, sessdata, bili_jct)
             actions.append(r)
-            time.sleep(0.5)
+            if do_coin or do_fav:
+                time.sleep(2)
 
         if do_coin:
             r = coin_video(aid, sessdata, bili_jct)
             actions.append(r)
-            time.sleep(0.5)
+            if do_fav:
+                time.sleep(2)
 
         if do_fav:
             r = fav_video(aid, sessdata, bili_jct, fav_id)
             actions.append(r)
-            time.sleep(0.5)
 
         results.append({
             "member": member["name"],
@@ -326,7 +328,8 @@ def process_member_videos(member: Dict, videos: List[Dict],
             "created": v.get("created", 0),
             "actions": actions,
         })
-        time.sleep(1)
+        if i < len(videos) - 1:
+            time.sleep(delay)
 
     return results
 
@@ -417,6 +420,7 @@ def main():
     parser.add_argument("--coin", action="store_true", default=False, help="投币（默认关闭）")
     parser.add_argument("--fav", action="store_true", default=False, help="收藏（默认关闭）")
     parser.add_argument("--members", help="指定成员（逗号分隔）")
+    parser.add_argument("--delay", type=float, default=8, help="视频之间的间隔秒数（默认 8）")
     parser.add_argument("--sessdata", help="SESSDATA cookie")
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
@@ -472,7 +476,7 @@ def main():
         results = process_member_videos(
             member, videos, sessdata, bili_jct,
             do_like=args.do_like, do_coin=args.coin,
-            do_fav=args.fav, fav_id=fav_id,
+            do_fav=args.fav, fav_id=fav_id, delay=args.delay,
         )
         all_results.extend(results)
 

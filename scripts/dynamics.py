@@ -221,9 +221,10 @@ def like_dynamic(dyn_id: str, sessdata: str, bili_jct: str) -> Dict:
 # ──────────────────────────────────────────
 
 def process_member_dynamics(member: Dict, dynamics: List[Dict],
-                            sessdata: str, bili_jct: str) -> List[Dict]:
+                            sessdata: str, bili_jct: str,
+                            delay: float = 8) -> List[Dict]:
     results = []
-    for d in dynamics:
+    for i, d in enumerate(dynamics):
         r = like_dynamic(d["dyn_id"], sessdata, bili_jct)
         results.append({
             "member": member["name"],
@@ -234,7 +235,8 @@ def process_member_dynamics(member: Dict, dynamics: List[Dict],
             "url": f"https://t.bilibili.com/{d['dyn_id']}",
             **r,
         })
-        time.sleep(0.8)
+        if i < len(dynamics) - 1:
+            time.sleep(delay)
     return results
 
 
@@ -302,6 +304,7 @@ def main():
     parser.add_argument("--month", help="指定月份（如 3、03、2026-03）")
     parser.add_argument("--days", type=int, help="最近 N 天的动态")
     parser.add_argument("--members", help="指定成员（逗号分隔）")
+    parser.add_argument("--delay", type=float, default=8, help="动态之间的间隔秒数（默认 8）")
     parser.add_argument("--sessdata", help="SESSDATA cookie")
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
@@ -346,7 +349,7 @@ def main():
             continue
 
         print(f"  💬 找到 {len(dynamics)} 条动态，开始点赞...", file=sys.stderr)
-        results = process_member_dynamics(member, dynamics, sessdata, bili_jct)
+        results = process_member_dynamics(member, dynamics, sessdata, bili_jct, delay=args.delay)
         all_results.extend(results)
 
     if args.json:

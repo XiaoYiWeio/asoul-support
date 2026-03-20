@@ -22,6 +22,10 @@ env:
   # 签到弹幕内容，可以改成你喜欢的
   CHECKIN_MSG: '签到'
 
+  # 每次操作之间的间隔（秒），防止请求过快被 ban
+  # 建议 5~15，默认 8 秒。觉得太慢可以改小，但不建议低于 3
+  DELAY_SECONDS: '8'
+
 jobs:
   support:
     runs-on: ubuntu-latest
@@ -40,7 +44,7 @@ jobs:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
         run: |
-          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --msg "$CHECKIN_MSG"
+          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --msg "$CHECKIN_MSG" --delay "$DELAY_SECONDS"
 
       - name: 👍 视频点赞（最近7天）
         if: env.ENABLE_VIDEO_LIKE == 'true'
@@ -48,7 +52,7 @@ jobs:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
         run: |
-          python3 scripts/videos.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
+          python3 scripts/videos.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --delay "$DELAY_SECONDS"
 
       - name: 💬 动态点赞（最近7天）
         if: env.ENABLE_DYNAMIC_LIKE == 'true'
@@ -56,4 +60,4 @@ jobs:
           SESSDATA: ${{ secrets.SESSDATA }}
           BILI_JCT: ${{ secrets.BILI_JCT }}
         run: |
-          python3 scripts/dynamics.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT"
+          python3 scripts/dynamics.py --days 7 --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --delay "$DELAY_SECONDS"

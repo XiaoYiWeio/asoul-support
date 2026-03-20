@@ -170,21 +170,21 @@ def send_danmaku(room_id: int, msg: str, sessdata: str, bili_jct: str) -> Dict:
 
 
 def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
-                  auto_medal: bool = True) -> List[Dict]:
+                  auto_medal: bool = True, delay: float = 8) -> List[Dict]:
     medals = {}
     if auto_medal:
         print("  🏅 正在获取粉丝牌列表...", file=sys.stderr)
         medals = get_my_medals(sessdata, bili_jct)
 
     results = []
-    for m in members:
+    for i, m in enumerate(members):
         medal_info = None
         medal_worn = False
 
         if auto_medal and m["uid"] in medals:
             medal_info = medals[m["uid"]]
             medal_worn = wear_medal(medal_info["medal_id"], sessdata, bili_jct)
-            time.sleep(0.5)
+            time.sleep(1)
 
         resp = send_danmaku(m["room"], msg, sessdata, bili_jct)
         success = resp.get("code") == 0
@@ -199,8 +199,8 @@ def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
             "medal_worn": medal_worn,
             "raw": resp,
         })
-        if len(members) > 1:
-            time.sleep(2)
+        if i < len(members) - 1:
+            time.sleep(delay)
     return results
 
 
@@ -250,6 +250,7 @@ def main():
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--save-cookie", action="store_true", help="保存 cookie")
     parser.add_argument("--no-medal", action="store_true", help="不自动佩戴粉丝牌")
+    parser.add_argument("--delay", type=float, default=8, help="成员之间的间隔秒数（默认 8）")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     parser.add_argument("--list", action="store_true", help="列出所有成员")
     args = parser.parse_args()
@@ -292,7 +293,7 @@ def main():
             sys.exit(1)
 
     results = batch_checkin(targets, args.msg, sessdata, bili_jct,
-                            auto_medal=not args.no_medal)
+                            auto_medal=not args.no_medal, delay=args.delay)
 
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
