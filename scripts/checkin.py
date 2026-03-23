@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-A-SOUL 直播间批量弹幕签到。
-自动佩戴对应粉丝牌 → 发送签到弹幕，最大化亲密度收益。
+A-SOUL 直播间粉丝牌点亮 + 日常应援。
+自动佩戴对应粉丝牌 → 发送 10 条弹幕点亮牌子（保持 3 天可见）。
 零外部依赖，纯标准库。
 """
 
@@ -17,6 +17,26 @@ from typing import Optional, Dict, List
 
 _UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 _SEND_URL = "https://api.live.bilibili.com/msg/send"
+
+LIGHT_UP_COUNT = 10
+
+DEFAULT_MESSAGES = [
+    "签到",
+    "打卡",
+    "早上好",
+    "加油",
+    "冲冲冲",
+    "今天也要元气满满",
+    "来了来了",
+    "支持",
+    "爱了爱了",
+    "每日打卡",
+    "一直在",
+    "守护",
+    "干杯",
+    "比心",
+    "晚上好",
+]
 
 MEMBERS = [
     {"name": "嘉然",   "uid": 672328094,         "room": 22637261},
@@ -169,8 +189,20 @@ def send_danmaku(room_id: int, msg: str, sessdata: str, bili_jct: str) -> Dict:
         return {"code": -1, "message": str(e)}
 
 
-def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
-                  auto_medal: bool = True, delay: float = 8) -> List[Dict]:
+def _pick_messages(msgs: List[str], count: int) -> List[str]:
+    """从消息池中选取 count 条不重复的弹幕；池不够则循环复用。"""
+    import random
+    pool = list(msgs)
+    random.shuffle(pool)
+    result = []
+    for i in range(count):
+        result.append(pool[i % len(pool)])
+    return result
+
+
+def batch_checkin(members: List[Dict], msgs: List[str], sessdata: str, bili_jct: str,
+                  auto_medal: bool = True, count: int = LIGHT_UP_COUNT,
+                  delay: float = 8, danmaku_delay: float = 3) -> List[Dict]:
     medals = {}
     if auto_medal:
         print("  🏅 正在获取粉丝牌列表...", file=sys.stderr)
@@ -186,18 +218,34 @@ def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
             medal_worn = wear_medal(medal_info["medal_id"], sessdata, bili_jct)
             time.sleep(1)
 
-        resp = send_danmaku(m["room"], msg, sessdata, bili_jct)
-        success = resp.get("code") == 0
+        picked = _pick_messages(msgs, count)
+        sent_ok = 0
+        sent_fail = 0
+        last_error = None
+
+        for j, msg in enumerate(picked):
+            resp = send_danmaku(m["room"], msg, sessdata, bili_jct)
+            if resp.get("code") == 0:
+                sent_ok += 1
+            else:
+                sent_fail += 1
+                last_error = resp.get("message", resp.get("msg", "未知错误"))
+            if j < len(picked) - 1:
+                time.sleep(danmaku_delay)
+
+        lit = sent_ok >= LIGHT_UP_COUNT
         results.append({
             "name": m["name"],
             "room": m["room"],
             "url": f"https://live.bilibili.com/{m['room']}",
-            "msg": msg,
-            "success": success,
-            "error": None if success else resp.get("message", resp.get("msg", "未知错误")),
+            "sent_ok": sent_ok,
+            "sent_fail": sent_fail,
+            "count": count,
+            "lit": lit,
+            "success": sent_ok > 0,
+            "error": last_error,
             "medal": medal_info,
             "medal_worn": medal_worn,
-            "raw": resp,
         })
         if i < len(members) - 1:
             time.sleep(delay)
@@ -205,9 +253,8 @@ def batch_checkin(members: List[Dict], msg: str, sessdata: str, bili_jct: str,
 
 
 def format_output(results: List[Dict]) -> str:
-    lines = ["🌟 A-SOUL 直播间签到结果", ""]
-    ok = sum(1 for r in results if r["success"])
-    fail = len(results) - ok
+    lines = ["🌟 A-SOUL 粉丝牌点亮结果", ""]
+    lit_count = sum(1 for r in results if r["lit"])
 
     for r in results:
         medal = r.get("medal")
@@ -220,22 +267,22 @@ def format_output(results: List[Dict]) -> str:
         elif r.get("success"):
             medal_str = "  (无粉丝牌)"
 
-        if r["success"]:
-            lines.append(f"  ✅ {r['name']}{medal_str}  — 签到成功  💬「{r['msg']}」")
+        if r["lit"]:
+            lines.append(f"  ✅ {r['name']}{medal_str}  — 已点亮  💬{r['sent_ok']}/{r['count']}条")
+        elif r["success"]:
+            lines.append(f"  ⚠️ {r['name']}{medal_str}  — 部分成功  💬{r['sent_ok']}/{r['count']}条")
         else:
             err = r["error"] or "未知错误"
-            if "login" in err.lower() or "-101" in str(r.get("raw", {}).get("code", "")):
+            if "login" in err.lower():
                 lines.append(f"  ❌ {r['name']}  — Cookie 过期，请重新设置")
-            elif "msg in 1s" in str(r.get("raw", {}).get("data", {}).get("message", "")):
-                lines.append(f"  ⚠️ {r['name']}  — 发送太频繁，请稍后重试")
             else:
                 lines.append(f"  ❌ {r['name']}  — {err}")
 
     lines.append("")
-    if fail == 0:
-        lines.append(f"🎉 全部签到成功！({ok}/{len(results)})")
-    elif ok > 0:
-        lines.append(f"📊 部分成功：{ok} 成功 / {fail} 失败")
+    if lit_count == len(results):
+        lines.append(f"🎉 全部点亮成功！({lit_count}/{len(results)}) 牌子 3 天内不会熄灭")
+    elif lit_count > 0:
+        lines.append(f"📊 部分点亮：{lit_count}/{len(results)}，未满 {LIGHT_UP_COUNT} 条的牌子可能无法点亮")
     else:
         lines.append(f"💔 全部失败，请检查 Cookie 是否有效")
 
@@ -243,14 +290,19 @@ def format_output(results: List[Dict]) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="A-SOUL 直播间批量签到")
-    parser.add_argument("--msg", default="签到", help="弹幕内容（默认：签到）")
+    parser = argparse.ArgumentParser(description="A-SOUL 粉丝牌点亮 + 直播间弹幕应援")
+    parser.add_argument("--msg", action="append", dest="msgs",
+                        help="自定义弹幕内容（可多次指定，如 --msg 签到 --msg 加油）")
+    parser.add_argument("--count", type=int, default=LIGHT_UP_COUNT,
+                        help=f"每个直播间发送的弹幕条数（默认 {LIGHT_UP_COUNT}，发满 10 条可点亮牌子）")
     parser.add_argument("--members", help="指定成员（逗号分隔，如：嘉然,贝拉）默认全部")
     parser.add_argument("--sessdata", help="SESSDATA cookie")
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--save-cookie", action="store_true", help="保存 cookie")
     parser.add_argument("--no-medal", action="store_true", help="不自动佩戴粉丝牌")
     parser.add_argument("--delay", type=float, default=8, help="成员之间的间隔秒数（默认 8）")
+    parser.add_argument("--danmaku-delay", type=float, default=3,
+                        help="同一直播间内弹幕之间的间隔秒数（默认 3）")
     parser.add_argument("--json", action="store_true", help="JSON 输出")
     parser.add_argument("--list", action="store_true", help="列出所有成员")
     args = parser.parse_args()
@@ -292,8 +344,11 @@ def main():
             print(f"   可用成员：{', '.join(m['name'] for m in MEMBERS)}")
             sys.exit(1)
 
-    results = batch_checkin(targets, args.msg, sessdata, bili_jct,
-                            auto_medal=not args.no_medal, delay=args.delay)
+    msgs = args.msgs if args.msgs else DEFAULT_MESSAGES
+
+    results = batch_checkin(targets, msgs, sessdata, bili_jct,
+                            auto_medal=not args.no_medal, count=args.count,
+                            delay=args.delay, danmaku_delay=args.danmaku_delay)
 
     if args.json:
         print(json.dumps(results, ensure_ascii=False, indent=2))
