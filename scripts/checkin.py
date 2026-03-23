@@ -74,6 +74,40 @@ def save_cookies(sessdata: str, bili_jct: str):
 
 
 # ──────────────────────────────────────────
+# Live Status Detection
+# ──────────────────────────────────────────
+
+def check_live_status(members: List[Dict], sessdata: str, bili_jct: str) -> Dict[int, bool]:
+    """返回 {room_id: is_live}"""
+    url = "https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids"
+    headers = {
+        "User-Agent": _UA,
+        "Cookie": f"SESSDATA={sessdata}; bili_jct={bili_jct}",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Origin": "https://live.bilibili.com",
+        "Referer": "https://live.bilibili.com",
+    }
+    form_parts = [f"uids[]={m['uid']}" for m in members]
+    form_body = "&".join(form_parts).encode("utf-8")
+    req = urllib.request.Request(url, data=form_body, headers=headers)
+
+    uid_to_room = {m["uid"]: m["room"] for m in members}
+    result = {m["room"]: False for m in members}
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            body = json.loads(resp.read().decode("utf-8"))
+        if body.get("code") == 0 and body.get("data"):
+            for uid_str, info in body["data"].items():
+                uid = int(uid_str)
+                if uid in uid_to_room:
+                    result[uid_to_room[uid]] = info.get("live_status", 0) == 1
+    except Exception:
+        pass
+    return result
+
+
+# ──────────────────────────────────────────
 # Fan Medal (粉丝牌)
 # ──────────────────────────────────────────
 
@@ -300,6 +334,8 @@ def main():
     parser.add_argument("--bili-jct", help="bili_jct cookie")
     parser.add_argument("--save-cookie", action="store_true", help="保存 cookie")
     parser.add_argument("--no-medal", action="store_true", help="不自动佩戴粉丝牌")
+    parser.add_argument("--live-only", action="store_true",
+                        help="只对正在直播的成员发弹幕（需要开播才能点亮牌子）")
     parser.add_argument("--delay", type=float, default=8, help="成员之间的间隔秒数（默认 8）")
     parser.add_argument("--danmaku-delay", type=float, default=3,
                         help="同一直播间内弹幕之间的间隔秒数（默认 3）")
@@ -343,6 +379,19 @@ def main():
             print(f"❌ 未找到指定成员：{args.members}")
             print(f"   可用成员：{', '.join(m['name'] for m in MEMBERS)}")
             sys.exit(1)
+
+    if args.live_only:
+        print("  📡 正在检测直播状态...", file=sys.stderr)
+        live_status = check_live_status(targets, sessdata, bili_jct)
+        live_targets = [m for m in targets if live_status.get(m["room"], False)]
+        offline = [m["name"] for m in targets if not live_status.get(m["room"], False)]
+        if offline:
+            print(f"  💤 未开播（跳过）：{', '.join(offline)}", file=sys.stderr)
+        if not live_targets:
+            print("\nℹ️  当前没有成员在播，本次跳过")
+            return
+        targets = live_targets
+        print(f"  🔴 在播：{', '.join(m['name'] for m in targets)}", file=sys.stderr)
 
     msgs = args.msgs if args.msgs else DEFAULT_MESSAGES
 

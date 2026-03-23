@@ -1,9 +1,8 @@
-name: A-SOUL 每日应援
+name: A-SOUL 自动应援
 
 on:
   schedule:
     # 每 2 天执行一次，UTC 02:30 = 北京时间 10:30
-    # 粉丝牌点亮有效期 3 天，每 2 天跑一次留 1 天安全余量
     - cron: '30 2 */2 * *'
   workflow_dispatch:
 
@@ -11,25 +10,16 @@ on:
 # 🔧 配置区（按需修改 true / false）
 # ═══════════════════════════════════════════
 env:
-  # 粉丝牌点亮（自动佩戴粉丝牌 + 发 10 条弹幕点亮牌子），默认开启
-  ENABLE_CHECKIN: 'true'
-
-  # 视频点赞（给最近 3 天的新视频点赞），默认开启
+  # 视频点赞（给最近几天的新视频点赞），默认开启
   ENABLE_VIDEO_LIKE: 'true'
 
-  # 动态点赞（给最近 3 天的动态点赞），默认关闭
+  # 动态点赞（给最近几天的动态点赞），默认关闭
   ENABLE_DYNAMIC_LIKE: 'false'
 
   # 视频/动态的时间范围（天），与执行频率对齐
   DAYS: '3'
 
-  # 每个直播间发送的弹幕条数，发满 10 条可点亮牌子 3 天
-  CHECKIN_COUNT: '10'
-
-  # 同一直播间内弹幕之间的间隔（秒），防止"发送太频繁"
-  DANMAKU_DELAY: '3'
-
-  # 成员之间的间隔（秒），防止请求过快被 ban
+  # 操作之间的间隔（秒），防止请求过快被 ban
   # 建议 5~15，默认 8 秒
   DELAY_SECONDS: '8'
 
@@ -45,15 +35,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: 🏅 粉丝牌点亮（佩戴牌子 + 发弹幕点亮）
-        if: env.ENABLE_CHECKIN == 'true'
-        env:
-          SESSDATA: ${{ secrets.SESSDATA }}
-          BILI_JCT: ${{ secrets.BILI_JCT }}
-        run: |
-          python3 scripts/checkin.py --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --count "$CHECKIN_COUNT" --danmaku-delay "$DANMAKU_DELAY" --delay "$DELAY_SECONDS"
-
-      - name: 👍 视频点赞（最近几天）
+      - name: 👍 视频点赞
         if: env.ENABLE_VIDEO_LIKE == 'true'
         env:
           SESSDATA: ${{ secrets.SESSDATA }}
@@ -61,7 +43,7 @@ jobs:
         run: |
           python3 scripts/videos.py --days "$DAYS" --sessdata "$SESSDATA" --bili-jct "$BILI_JCT" --delay "$DELAY_SECONDS"
 
-      - name: 💬 动态点赞（最近几天）
+      - name: 💬 动态点赞
         if: env.ENABLE_DYNAMIC_LIKE == 'true'
         env:
           SESSDATA: ${{ secrets.SESSDATA }}
