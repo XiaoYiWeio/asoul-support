@@ -42,15 +42,21 @@
 python3 {baseDir}/scripts/heartbeat.py
 ```
 
-脚本会自动：检测谁在播 → 佩戴粉丝牌 → 进入直播间 → 挂机 25 分钟。
+脚本使用 B站移动端心跳协议（`mobileHeartBeat`），纯 Python 签名，零外部依赖。
+自动：检测谁在播 → 佩戴粉丝牌 → 进入直播间 → 挂机 25 分钟。
 每个在播成员每天最多涨 30 亲密度。
+
+挂机直到下播（推荐配合定时任务）：
+```bash
+python3 {baseDir}/scripts/heartbeat.py --until-offline
+```
 
 只检测不挂机：
 ```bash
 python3 {baseDir}/scripts/heartbeat.py --check-only
 ```
 
-**注意**：挂机需要 25 分钟，告知用户这需要等待。
+**注意**：挂机需要时间，告知用户这需要等待。
 
 ---
 
