@@ -87,11 +87,13 @@ npx clawhub install asoul-support
 
 如果你也关注其他主播，只需要替换脚本里对应的主播 UID 和房间号就可以用。不过……记得先关注**嘉然今天吃什么**哦～
 
-<img src="assets/diana-heart.png" width="100" alt="嘉然比心" />
+<p align="center">
+  <img src="assets/diana-heart.png" width="100" alt="嘉然比心" />
+</p>
 
 如果这个项目帮到了你，**请给个 Star ⭐！** 这对我真的很重要，能让更多魂们发现这个工具。也欢迎 **Fork** 到自己账号使用，遇到问题或有好的想法随时提 **Issue**，我都会看。
 
-希望能帮到跟我一样忙碌但心里还惦记着 A-SOUL 的魂们，一个都不能少。
+希望能帮到跟我一样忙碌但心里还惦记着 A-SOUL 的魂们。
 
 ---
 
@@ -99,7 +101,7 @@ npx clawhub install asoul-support
 
 全自动检测开播 + 挂机涨亲密度 + 点亮粉丝牌，推荐使用。
 
-**环境要求：** [OpenClaw](https://openclaw.ai)（最新版）+ Python 3.9+
+**环境要求：** [OpenClaw](https://openclaw.ai)（>= 2026.3.11）+ Python 3.9+
 
 **第 1 步：安装**
 
