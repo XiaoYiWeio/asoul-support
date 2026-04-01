@@ -17,30 +17,48 @@
 <p align="center">
   <img src="https://img.shields.io/badge/version-4.0.0-blue" alt="version" />
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="python" />
-  <img src="https://img.shields.io/badge/依赖-零外部依赖-brightgreen" alt="deps" />
-  <img src="https://img.shields.io/badge/协议-MIT-orange" alt="license" />
+  <img src="https://img.shields.io/badge/license-MIT-orange" alt="license" />
 </p>
+
+---
+
+## 一句话安装
+
+复制下面这句话，发给你的 [OpenClaw](https://openclaw.ai)，它会帮你搞定一切：
+
+> 帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support ，然后帮我设置 A-SOUL 自动挂机
+
+就这样，装好了。OpenClaw 会引导你配置 B站 Cookie 和定时任务。
+
+<details>
+<summary>🔧 也可以用命令行安装</summary>
+
+```bash
+npx clawhub install asoul-support
+```
+
+</details>
 
 ---
 
 ## 它能做什么？
 
-| 功能 | 需要开播 | 说明 |
-|------|:--------:|------|
-| 💓 **心跳挂机涨亲密度** | ✅ | 检测开播 → 移动端心跳 → 每 5 分钟 +6，每天 30 满额 |
-| 🏅 **粉丝牌自动点亮** | ✅ | 开播后发 10 条弹幕，牌子保持 3 天可见 |
-| 👍 **视频自动点赞** | ❌ | 每 2 天自动给成员新视频点赞 |
-| 💬 **动态自动点赞** | ❌ | 每 2 天自动给成员新动态点赞 |
+| 功能 | 使用条件 | 说明 |
+|------|----------|------|
+| 💓 **心跳挂机涨亲密度** | 需要开播 | 检测开播 → 移动端心跳 → 每 5 分钟 +6，每天 30 满额 |
+| 🏅 **粉丝牌自动点亮** | 需要开播 | 开播后发 10 条弹幕，牌子保持 3 天可见 |
+| 👍 **视频自动点赞** | 无 | 每 2 天自动给成员新视频点赞 |
+| 💬 **动态自动点赞** | 无 | 每 2 天自动给成员新动态点赞 |
 
 ### v4.0 核心升级
 
-> 使用 B站最新 **移动端心跳协议**（`mobileHeartBeat`），纯 Python 签名，**零外部依赖**。
+> 使用 B站最新 **移动端心跳协议**（`mobileHeartBeat`），纯 Python 签名，零外部依赖。
 >
 > 实测亲密度 **0 → 30/30 满额**，粉丝牌直接升级。
 
 ---
 
-## 快速开始（OpenClaw 用户）
+## 使用教程（OpenClaw）
 
 这是**推荐方式**，全自动检测开播 + 挂机涨亲密度 + 点亮粉丝牌。
 
@@ -50,21 +68,26 @@
 |------|------|------|
 | [OpenClaw](https://openclaw.ai) | 最新版 | AI agent 平台 |
 | Python | 3.9+ | macOS/Linux 自带 |
-| Node.js | 不需要 | v4.0 已移除 Node.js 依赖 |
 
 ### 第 1 步：安装 Skill
+
+对你的 OpenClaw 说：
+
+> "帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support"
+
+或者命令行：
 
 ```bash
 npx clawhub install asoul-support
 ```
 
-### 第 2 步：告诉 OpenClaw 配置 Cookie
+### 第 2 步：配置 Cookie
 
-对你的 OpenClaw 说：
+对 OpenClaw 说：
 
 > "帮我设置 A-SOUL 自动挂机"
 
-OpenClaw 会引导你获取 B站 Cookie（SESSDATA 和 bili_jct），跟着做就行。
+它会引导你获取 B站 Cookie（SESSDATA 和 bili_jct），跟着做就行。
 
 <details>
 <summary>📋 手动获取 Cookie 的方法（点击展开）</summary>
@@ -185,6 +208,21 @@ v4.0 使用 B站 **移动端心跳协议**（`mobileHeartBeat`）：
 - 所有代码**完全开源**，可自行检查
 - 只做点赞和弹幕操作，不投币、不送礼、不关注陌生人
 - GitHub Actions 对公开仓库完全免费
+
+## 写在最后
+
+做这个工具不是为了让大家躺平不看直播。
+
+我自己是工作太忙，经常加班错过开播，眼睁睁看着粉丝牌熄灭、亲密度一天天没涨，才写了这个让它在我忙的时候帮我守着。
+
+**如果你有时间，还是建议去直播间看直播**，跟大家一起刷弹幕、跟嘉然贝拉她们互动，那种快乐是工具给不了的。
+
+这个工具更适合：
+- 工作日白天没法看直播的打工人
+- 出差途中没法挂机的
+- 偶尔忘了签到怕牌子熄灭的
+
+能亲自去当然亲自去，这个只是你的备用方案。魂们加油，一个都不能少。
 
 ## 常见问题
 
