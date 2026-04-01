@@ -22,26 +22,25 @@
 
 ---
 
-## 一句话安装
+## 🚀 一句话安装
 
 复制下面这句话，发给你的 [OpenClaw](https://openclaw.ai)，它会帮你搞定一切：
 
-> 帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support ，然后帮我设置 A-SOUL 自动挂机
+```
+帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support ，然后帮我设置 A-SOUL 自动挂机
+```
 
 就这样，装好了。OpenClaw 会引导你配置 B站 Cookie 和定时任务。
 
-<details>
-<summary>🔧 也可以用命令行安装</summary>
+也可以用命令行安装：
 
 ```bash
 npx clawhub install asoul-support
 ```
 
-</details>
-
 ---
 
-## 它能做什么？
+## ✨ 它能做什么？
 
 | 功能 | 使用条件 | 说明 |
 |------|----------|------|
@@ -54,11 +53,11 @@ npx clawhub install asoul-support
 
 > 使用 B站最新 **移动端心跳协议**（`mobileHeartBeat`），纯 Python 签名，零外部依赖。
 >
-> 实测亲密度 **0 → 30/30 满额**，粉丝牌直接升级。
+> B站亲密度规则：观看直播每 5 分钟获得 6 点亲密度，每日每个成员上限 30 点（即挂满 25 分钟即可拉满）。
 
 ---
 
-## 使用教程（OpenClaw）
+## 📖 使用教程（OpenClaw）
 
 这是**推荐方式**，全自动检测开播 + 挂机涨亲密度 + 点亮粉丝牌。
 
@@ -73,19 +72,17 @@ npx clawhub install asoul-support
 
 对你的 OpenClaw 说：
 
-> "帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support"
-
-或者命令行：
-
-```bash
-npx clawhub install asoul-support
+```
+帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support
 ```
 
 ### 第 2 步：配置 Cookie
 
 对 OpenClaw 说：
 
-> "帮我设置 A-SOUL 自动挂机"
+```
+帮我设置 A-SOUL 自动挂机
+```
 
 它会引导你获取 B站 Cookie（SESSDATA 和 bili_jct），跟着做就行。
 
@@ -107,7 +104,9 @@ npx clawhub install asoul-support
 
 对 OpenClaw 说：
 
-> "帮我设置一个定时任务，每 30 分钟检测 A-SOUL 成员是否在直播，如果在播就帮我挂机涨亲密度并点亮粉丝牌"
+```
+帮我设置一个定时任务，每 30 分钟检测 A-SOUL 成员是否在直播，如果在播就帮我挂机涨亲密度并点亮粉丝牌
+```
 
 搞定！OpenClaw 会 24/7 自动工作：
 
@@ -139,7 +138,7 @@ python3 scripts/checkin.py --live-only
 
 ---
 
-## GitHub Actions 自动点赞（不需要 OpenClaw）
+## 🔧 GitHub Actions 自动点赞（不需要 OpenClaw）
 
 如果你只需要**视频/动态自动点赞**（不涨亲密度），可以只用 GitHub Actions，不需要安装任何东西。
 
@@ -178,13 +177,13 @@ python3 scripts/checkin.py --live-only
 
 ---
 
-## 关于亲密度和粉丝牌
+## 💡 关于亲密度和粉丝牌
 
-- **涨亲密度**：观看直播（每 5 分钟 +6，上限 30/天）或投币（1 币 = 10 亲密度）
+- **涨亲密度**：观看直播每 5 分钟 +6，每日每成员上限 30（挂 25 分钟满额）；投币 1 币 = 10 亲密度
 - **点亮粉丝牌**：发 10 条弹幕 / 观看 15 分钟 / 投币，有效期 3 天
 - **以上操作都需要成员正在直播**，视频/动态点赞不受限制
 
-## 技术方案
+## 🔬 技术方案
 
 v4.0 使用 B站 **移动端心跳协议**（`mobileHeartBeat`）：
 
@@ -192,7 +191,7 @@ v4.0 使用 B站 **移动端心跳协议**（`mobileHeartBeat`）：
 - **纯 Python 标准库**实现，不依赖任何外部签名服务
 - 不需要 Node.js、pm2、Docker 或任何额外进程
 
-## 内置成员
+## 🌟 内置成员
 
 | 成员 | 直播间 | 主页 |
 |------|--------|------|
@@ -202,14 +201,16 @@ v4.0 使用 B站 **移动端心跳协议**（`mobileHeartBeat`）：
 | 心宜 | [30849777](https://live.bilibili.com/30849777) | [space](https://space.bilibili.com/3537115310721181) |
 | 思诺 | [30858592](https://live.bilibili.com/30858592) | [space](https://space.bilibili.com/3537115310721781) |
 
-## 安全说明
+## 🔒 安全说明
 
 - Cookie **加密存储**在本地（权限 600）或 GitHub Secrets 中
 - 所有代码**完全开源**，可自行检查
 - 只做点赞和弹幕操作，不投币、不送礼、不关注陌生人
 - GitHub Actions 对公开仓库完全免费
 
-## 写在最后
+## 💌 写在最后
+
+<img src="assets/diana-heart.png" width="100" align="right" alt="嘉然比心" />
 
 做这个工具不是为了让大家躺平不看直播。
 
@@ -224,7 +225,7 @@ v4.0 使用 B站 **移动端心跳协议**（`mobileHeartBeat`）：
 
 能亲自去当然亲自去，这个只是你的备用方案。魂们加油，一个都不能少。
 
-## 常见问题
+## ❓ 常见问题
 
 **Q: Cookie 过期了怎么办？**
 重新获取 SESSDATA 和 bili_jct，告诉 OpenClaw 更新就行。过期后 GitHub 会发邮件通知你。
@@ -238,7 +239,7 @@ OpenClaw 在后台运行（类似服务），不需要你盯着。GitHub Actions
 **Q: 需要安装 Node.js 吗？**
 不需要。v4.0 纯 Python 实现，只需要 Python 3.9+。
 
-## 更新日志
+## 📝 更新日志
 
 ### v4.0（2026-03-31）
 
