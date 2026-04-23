@@ -306,9 +306,15 @@ def mobile_heartbeat(room_id: int, up_id: int, area_id: int, parent_area_id: int
         if body.get("code") == 0 and body.get("data"):
             return body["data"]
         else:
-            print(f"    ⚠️  心跳失败: {body.get('message', body)}", file=sys.stderr)
+            error_code = body.get("code", "unknown")
+            error_msg = body.get("message", str(body))
+            print(f"    ⚠️  心跳失败: [{error_code}] {error_msg}", file=sys.stderr)
+            _log({"type": "heartbeat_error", "room_id": room_id, "up_id": up_id,
+                  "code": error_code, "message": error_msg})
     except Exception as e:
         print(f"    ⚠️  心跳异常: {e}", file=sys.stderr)
+        _log({"type": "heartbeat_exception", "room_id": room_id, "up_id": up_id,
+              "error": str(e)})
     return None
 
 
@@ -408,7 +414,8 @@ def watch_room(member: Dict, sessdata: str, bili_jct: str,
             if result:
                 beats_ok += 1
                 consecutive_fail = 0
-                interval = result.get("heartbeat_interval", interval)
+                # 不再使用服务器返回的 heartbeat_interval，保持用户设置的间隔
+                # 服务器返回的 300 秒是亲密度结算周期，不是心跳发送间隔
             else:
                 consecutive_fail += 1
 
@@ -606,11 +613,26 @@ def main():
         lock_file = _LOCK_DIR / f"{m['room']}.lock" if args.until_offline else None
 
         if lock_file and lock_file.exists():
-            print(f"\n  ⏭  [{i+1}/{len(live_members)}] {m['name']} 已有挂机在运行，跳过", file=sys.stderr)
-            live_results.append({"name": m["name"], "room": m["room"],
-                                  "success": True, "skipped": True,
-                                  "beats_ok": 0, "beats_total": 0, "minutes": 0})
-            continue
+            # 检查锁文件是否过期（进程已不存在）
+            lock_pid = lock_file.read_text().strip()
+            lock_valid = False
+            try:
+                if lock_pid:
+                    os.kill(int(lock_pid), 0)  # 检查进程是否存在
+                    lock_valid = True
+            except (OSError, ValueError, ProcessLookupError):
+                pass
+            
+            if lock_valid:
+                print(f"\n  ⏭  [{i+1}/{len(live_members)}] {m['name']} 已有挂机在运行，跳过", file=sys.stderr)
+                live_results.append({"name": m["name"], "room": m["room"],
+                                      "success": True, "skipped": True,
+                                      "beats_ok": 0, "beats_total": 0, "minutes": 0})
+                continue
+            else:
+                # 清理过期的锁文件
+                print(f"\n  🧹 [{i+1}/{len(live_members)}] {m['name']} 清理过期锁文件", file=sys.stderr)
+                lock_file.unlink()
 
         print(f"\n  📺 [{i+1}/{len(live_members)}] {m['name']} 直播间 {m['room']}", file=sys.stderr)
 

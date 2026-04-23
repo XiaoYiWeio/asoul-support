@@ -89,7 +89,6 @@ Cookie 加密存储，开源代码可自查
 ----
 
 安装命令：npx clawhub install asoul-support
-项目地址：https://github.com/XiaoYiWeio/asoul-support
-Star 一下让更多魂们看到！
+
 
 #ASOUL #嘉然 #贝拉 #乃琳 #心宜 #思诺 #粉丝牌 #亲密度 #自动挂机 #OpenClaw
