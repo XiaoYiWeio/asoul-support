@@ -10,12 +10,11 @@
 
 <p align="center">
   <a href="https://clawhub.ai/skills/asoul-support">🦞 ClawHub</a> ·
-  <a href="https://github.com/XiaoYiWeio/asoul-support">📦 GitHub</a> ·
-  <a href="https://openclaw.ai">🌐 OpenClaw</a>
+  <a href="https://github.com/XiaoYiWeio/asoul-support">📦 GitHub</a>
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-4.0.0-blue" alt="version" />
+  <img src="https://img.shields.io/badge/version-4.0.1-blue" alt="version" />
   <img src="https://img.shields.io/badge/python-3.9+-green" alt="python" />
   <img src="https://img.shields.io/badge/license-MIT-orange" alt="license" />
 </p>
@@ -24,16 +23,10 @@
 
 ## 🚀 一句话安装
 
-复制下面这句话，发给你的 [OpenClaw](https://openclaw.ai)，它会帮你搞定一切：
+复制下面这句话，发给你的 AI 助手（支持任意 agent 框架），它会帮你搞定一切：
 
 ```
-帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support ，然后帮我设置 A-SOUL 自动挂机
-```
-
-也可以用命令行安装：
-
-```bash
-npx clawhub install asoul-support
+帮我安装这个项目并设置 A-SOUL 自动挂机：https://github.com/XiaoYiWeio/asoul-support
 ```
 
 ---
@@ -56,10 +49,10 @@ npx clawhub install asoul-support
 
 | 版本 | 日期 | 更新内容 |
 |------|------|----------|
-| **v4.0** | 2026-03-31 | 心跳协议升级为 `mobileHeartBeat`，纯 Python 签名，零外部依赖，亲密度实测可涨 |
-| v3.0 | 2026-03-23 | 新增开播检测 + 心跳挂机 + Discord 通知 |
-| v2.0 | 2026-03-20 | 粉丝牌点亮（10 条弹幕，3 天有效期） |
-| v1.0 | 2026-03 | 视频点赞 + 动态点赞 + GitHub Actions |
+| **v4** | 2026-04-01 | 心跳协议升级为 `mobileHeartBeat`，纯 Python 签名，零外部依赖，亲密度实测可涨 |
+| v3 | 2026-03-23 | 新增开播检测 + 心跳挂机 + Discord 通知 |
+| v2 | 2026-03-20 | 粉丝牌点亮（10 条弹幕，3 天有效期） |
+| v1 | 2026-03 | 视频点赞 + 动态点赞 + GitHub Actions |
 
 ---
 
@@ -71,7 +64,7 @@ npx clawhub install asoul-support
 | **签名算法** | `sha512 → sha3_512 → sha384 → sha3_384 → blake2b` 链式 hash |
 | **实现语言** | 纯 Python 3.9+，标准库 `hashlib` |
 | **外部依赖** | 无（不需要 Node.js / pm2 / Docker） |
-| **运行方式** | OpenClaw 定时任务 或 命令行直接执行 |
+| **运行方式** | 命令行直接执行 或 任意 agent 框架调度 |
 
 ## 🔒 安全说明
 
@@ -85,7 +78,7 @@ npx clawhub install asoul-support
 
 做这个工具不是为了让大家不看直播，是因为我自己工作太忙经常错过开播，才写了这个在忙的时候帮我守着。**有时间的话还是去直播间看直播吧**，跟大家一起刷弹幕互动的快乐是工具给不了的。
 
-如果你也关注其他主播，只需要替换脚本里对应的主播 UID 和房间号就可以用。不过……记得先关注**嘉然今天吃什么**哦～
+如果你也关注其他主播，只需要替换脚本里对应的主播 UID 和房间号就可以用。不过……记得先关注[**嘉然今天吃什么**](https://space.bilibili.com/672328094/)哦～
 
 <p align="center">
   <img src="assets/diana-heart.png" width="100" alt="嘉然比心" />
@@ -97,41 +90,69 @@ npx clawhub install asoul-support
 
 ---
 
-## 📖 使用教程（OpenClaw）
+## 📖 使用教程
 
-全自动检测开播 + 挂机涨亲密度 + 点亮粉丝牌，推荐使用。
+### 🤖 OpenClaw / Hermes / QClaw 等 Agent 助手用户
 
-**环境要求：** [OpenClaw](https://openclaw.ai)（>= 2026.3.11）+ Python 3.9+
-
-**第 1 步：安装**
+直接把下面这句话发给你的 AI 助手，它会帮你搞定安装、配置和定时任务：
 
 ```
-帮我安装这个 skill：https://github.com/XiaoYiWeio/asoul-support
+帮我安装这个项目并设置 A-SOUL 自动挂机：https://github.com/XiaoYiWeio/asoul-support
+```
+
+安装完成后，再告诉它：
+
+```
+帮我设置一个定时任务，每 30 分钟检测 A-SOUL 成员是否在直播，在播就帮我挂机涨亲密度并点亮粉丝牌
+```
+
+> 支持所有兼容 Python 的 agent 框架，助手会自动处理代码克隆、Cookie 配置和定时调度。
+
+---
+
+<details>
+<summary>🐍 纯命令行用户（不使用 Agent 助手，点击展开）</summary>
+
+**环境要求：** Python 3.9+
+
+**第 1 步：获取代码**
+
+```bash
+git clone https://github.com/XiaoYiWeio/asoul-support.git
+cd asoul-support
 ```
 
 **第 2 步：配置 Cookie**
 
+```bash
+python3 scripts/checkin.py --save-cookie --sessdata "你的SESSDATA" --bili-jct "你的bili_jct"
 ```
-帮我设置 A-SOUL 自动挂机
-```
 
-OpenClaw 会引导你获取 B站 Cookie（SESSDATA 和 bili_jct）。
-
-<details>
-<summary>📋 手动获取 Cookie（点击展开）</summary>
-
-1. Chrome 打开 [bilibili.com](https://www.bilibili.com)（确保已登录）→ 按 **F12** → **Application** → **Cookies** → **https://www.bilibili.com**
-2. 找到 **SESSDATA** 和 **bili_jct**，复制它们的值
+如何获取 B站 Cookie：Chrome 打开 [bilibili.com](https://www.bilibili.com)（确保已登录）→ 按 **F12** → **Application** → **Cookies** → **https://www.bilibili.com**，找到 **SESSDATA** 和 **bili_jct** 复制即可。
 
 > ⚠️ 相当于登录凭证，不要分享。约 6 个月后过期。
 
+**第 3 步：运行**
+
+```bash
+# 检测谁在播 + 自动挂机涨亲密度
+python3 scripts/heartbeat.py
+
+# 挂机到下播为止
+python3 scripts/heartbeat.py --until-offline
+
+# 发弹幕点亮粉丝牌
+python3 scripts/checkin.py --live-only
+```
+
+**第 4 步：设置定时任务（cron）**
+
+```bash
+# crontab -e
+*/30 * * * * cd /path/to/asoul-support && python3 scripts/heartbeat.py --until-offline
+```
+
 </details>
-
-**第 3 步：设置定时任务**
-
-```
-帮我设置一个定时任务，每 30 分钟检测 A-SOUL 成员是否在直播，如果在播就帮我挂机涨亲密度并点亮粉丝牌
-```
 
 ---
 
@@ -165,9 +186,9 @@ OpenClaw 会引导你获取 B站 Cookie（SESSDATA 和 bili_jct）。
 
 ## ❓ 常见问题
 
-**Q: Cookie 过期了怎么办？** — 重新获取，告诉 OpenClaw 更新即可。GitHub 失败时会发邮件通知。
+**Q: Cookie 过期了怎么办？** — 重新获取，重跑 `--save-cookie` 命令更新即可。GitHub Actions 失败时会发邮件通知。
 
-**Q: 需要电脑一直开着吗？** — OpenClaw 后台运行，GitHub Actions 在云端，都不需要盯着。
+**Q: 需要电脑一直开着吗？** — 用服务器/NAS 跑脚本，或用 GitHub Actions（视频/动态点赞部分），都不需要盯着。
 
 **Q: 投币会消耗硬币吗？** — 默认不投币。需要手动开启 `--coin` 参数才会投。
 
